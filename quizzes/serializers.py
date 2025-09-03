@@ -173,5 +173,5 @@ class ParentQuizListSerializer(serializers.ModelSerializer):
         model = Quiz
         fields = [
             'id', 'title', 'description', 'time_limit', 'deadline',
-            'total_questions', 'total_marks', 'teacher_name'
+            'is_active', 'total_questions', 'total_marks', 'teacher_name'
         ]

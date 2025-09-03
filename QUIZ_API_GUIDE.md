@@ -91,6 +91,23 @@ GET /api/parent/quizzes/
 Authorization: Bearer <parent-token>
 ```
 
+**Response Example:**
+```json
+[
+    {
+        "id": 1,
+        "title": "Math Quiz 1",
+        "description": "Basic algebra and geometry questions",
+        "time_limit": 30,
+        "deadline": "2025-09-10T15:00:00Z",
+        "is_active": true,
+        "total_questions": 5,
+        "total_marks": 10,
+        "teacher_name": "John Doe"
+    }
+]
+```
+
 **Note:** Only returns active quizzes from teachers who teach the parent's children.
 
 ### 4. Quiz Attempts and Submissions
