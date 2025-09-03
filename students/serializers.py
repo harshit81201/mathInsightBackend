@@ -27,6 +27,29 @@ class StudentSerializer(serializers.ModelSerializer):
             }
         return None
 
+
+class ParentChildrenSerializer(serializers.ModelSerializer):
+    """Serializer for parent to view their children with teacher details"""
+    teacher_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Student
+        fields = ["id", "name", "class_name", "teacher_details"]
+        read_only_fields = ["id", "name", "class_name", "teacher_details"]
+
+    def get_teacher_details(self, obj):
+        if obj.teacher:
+            return {
+                "id": obj.teacher.id,
+                "email": obj.teacher.email,
+                "first_name": obj.teacher.first_name,
+                "last_name": obj.teacher.last_name,
+                "full_name": obj.teacher.get_full_name(),
+                "school_name": obj.teacher.school_name
+            }
+        return None
+
+
 class StudentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student

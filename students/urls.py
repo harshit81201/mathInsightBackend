@@ -8,4 +8,5 @@ from . import views
 urlpatterns = [
     path('students/', views.StudentListCreateView.as_view(), name='student-list-create'),
     path('students/<int:pk>/', views.StudentRetrieveUpdateDeleteView.as_view(), name='student-detail'),
+    path('parent/children/', views.ParentChildrenListView.as_view(), name='parent-children-list'),
 ]

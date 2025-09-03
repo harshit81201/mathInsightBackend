@@ -4,8 +4,27 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Student
-from .serializers import StudentSerializer, StudentCreateSerializer
+from .serializers import StudentSerializer, StudentCreateSerializer, ParentChildrenSerializer
 from users.models import User
+
+
+class IsParent(IsAuthenticated):
+    """Permission class to check if user is a parent"""
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.role == 'parent'
+
+
+class ParentChildrenListView(APIView):
+    """
+    GET /api/parent/children/ - Parent gets their children
+    """
+    permission_classes = [IsParent]
+
+    def get(self, request):
+        # Get children for the current parent
+        children = Student.objects.filter(parent=request.user)
+        serializer = ParentChildrenSerializer(children, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class StudentListCreateView(APIView):
 	permission_classes = [IsAuthenticated]

@@ -83,7 +83,45 @@ Authorization: Bearer <teacher-token>
 
 **Note:** For students/parents, this endpoint will NOT include the `correct_option` field.
 
-### 3. Parent Quiz Access
+### 3. Parent Endpoints
+
+#### Get Parent's Children
+```http
+GET /api/parent/children/
+Authorization: Bearer <parent-token>
+```
+
+**Response Example:**
+```json
+[
+    {
+        "id": 1,
+        "name": "Alice Smith",
+        "class_name": "Grade 5A",
+        "teacher_details": {
+            "id": 3,
+            "email": "teacher@school.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "full_name": "John Doe",
+            "school_name": "Springfield Elementary"
+        }
+    },
+    {
+        "id": 2,
+        "name": "Bob Smith",
+        "class_name": "Grade 3B",
+        "teacher_details": {
+            "id": 4,
+            "email": "teacher2@school.com",
+            "first_name": "Jane",
+            "last_name": "Wilson",
+            "full_name": "Jane Wilson",
+            "school_name": "Springfield Elementary"
+        }
+    }
+]
+```
 
 #### Get Available Active Quizzes for Children
 ```http
