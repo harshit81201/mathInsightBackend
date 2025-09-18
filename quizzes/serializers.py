@@ -199,7 +199,7 @@ class QuizAttemptDetailSerializer(serializers.ModelSerializer):
     total_questions = serializers.SerializerMethodField()
     quiz_marks = serializers.IntegerField(source='score', read_only=True)
     percentage = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = QuizAttempt
         fields = [
@@ -207,11 +207,11 @@ class QuizAttemptDetailSerializer(serializers.ModelSerializer):
             'correct_answers', 'total_questions', 'quiz_marks', 'total_marks',
             'percentage', 'attempted_at', 'completed_at', 'is_completed'
         ]
-    
+
     def get_correct_answers(self, obj):
         """Get number of correct answers for this attempt"""
         return obj.answers.filter(is_correct=True).count()
-    
+
     def get_total_questions(self, obj):
         """Get total number of questions answered"""
         return obj.answers.count()
@@ -232,7 +232,7 @@ class AllQuizzesAttemptedSerializer(serializers.ModelSerializer):
     student_class = serializers.CharField(source='student.class_name', read_only=True)
     quiz_title = serializers.CharField(source='quiz.title', read_only=True)
     percentage = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = QuizAttempt
         fields = [
