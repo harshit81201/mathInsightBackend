@@ -11,7 +11,8 @@ from .serializers import (
     QuizListSerializer, QuizDetailSerializer, QuizCreateSerializer, QuizUpdateSerializer,
     QuestionSerializer, QuestionCreateSerializer, QuizAttemptSerializer,
     QuizSubmissionSerializer, QuizResultSerializer, ParentQuizListSerializer,
-    QuizAnswerSerializer
+    QuizAnswerSerializer, StudentScoreSummarySerializer, QuizAttemptDetailSerializer,
+    StudentDetailedScoresSerializer, AllQuizzesAttemptedSerializer
 )
 from students.models import Student
 
@@ -380,3 +381,110 @@ def get_quiz_results(request, quiz_id):
             {'error': 'Permission denied.'},
             status=status.HTTP_403_FORBIDDEN
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsTeacher])
+def teacher_students_scores(request, teacher_id):
+    """
+    GET /api/scores/teacher/{teacher_id}/students/
+    Get all students under a teacher with their quiz score summary
+    """
+    # Ensure teacher can only access their own students' data
+    if request.user.id != teacher_id:
+        return Response(
+            {'error': 'You can only access your own students\' scores.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get all students assigned to this teacher
+    students = Student.objects.filter(teacher_id=teacher_id)
+    
+    if not students.exists():
+        return Response(
+            {'message': 'No students found for this teacher.'},
+            status=status.HTTP_200_OK
+        )
+    
+    students_data = []
+    
+    for student in students:
+        # Get all quiz attempts for this student
+        attempts = QuizAttempt.objects.filter(student=student)
+        
+        # Calculate statistics
+        total_attempts = attempts.count()
+        completed_attempts = attempts.filter(is_completed=True).count()
+        incomplete_attempts = total_attempts - completed_attempts
+        
+        # Calculate average percentage for completed attempts
+        completed_quiz_attempts = attempts.filter(is_completed=True)
+        if completed_quiz_attempts.exists():
+            avg_percentage = sum(attempt.percentage for attempt in completed_quiz_attempts) / completed_quiz_attempts.count()
+            latest_attempt = attempts.order_by('-attempted_at').first()
+            latest_date = latest_attempt.attempted_at if latest_attempt else None
+        else:
+            avg_percentage = 0.0
+            latest_date = None
+        
+        student_data = {
+            'id': student.id,
+            'name': student.name,
+            'parent_email': student.parent_email,
+            'class_name': student.class_name,
+            'total_quizzes_attempted': total_attempts,
+            'average_score_percentage': round(avg_percentage, 2),
+            'latest_quiz_date': latest_date,
+            'completed_attempts': completed_attempts,
+            'incomplete_attempts': incomplete_attempts
+        }
+        students_data.append(student_data)
+    
+    # Get all quiz attempts by all students under this teacher for the overview section
+    all_attempts = QuizAttempt.objects.filter(
+        student__teacher_id=teacher_id
+    ).order_by('-attempted_at')
+    
+    response_data = {
+        'students': StudentScoreSummarySerializer(students_data, many=True).data,
+        'all_quiz_attempts': AllQuizzesAttemptedSerializer(all_attempts, many=True).data
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsTeacher])
+def teacher_student_detailed_scores(request, teacher_id, student_id):
+    """
+    GET /api/scores/teacher/{teacher_id}/student/{student_id}/
+    Get detailed quiz scores for a specific student under a specific teacher
+    """
+    # Ensure teacher can only access their own students' data
+    if request.user.id != teacher_id:
+        return Response(
+            {'error': 'You can only access your own students\' scores.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get the student and verify they belong to this teacher
+    try:
+        student = Student.objects.get(id=student_id, teacher_id=teacher_id)
+    except Student.DoesNotExist:
+        return Response(
+            {'error': 'Student not found or not assigned to this teacher.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Get all quiz attempts for this student
+    quiz_attempts = QuizAttempt.objects.filter(student=student).order_by('-attempted_at')
+    
+    response_data = {
+        'student_id': student.id,
+        'student_name': student.name,
+        'student_email': student.parent_email,
+        'class_name': student.class_name,
+        'quiz_attempts': QuizAttemptDetailSerializer(quiz_attempts, many=True).data
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)

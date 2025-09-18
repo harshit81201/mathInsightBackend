@@ -83,7 +83,129 @@ Authorization: Bearer <teacher-token>
 
 **Note:** For students/parents, this endpoint will NOT include the `correct_option` field.
 
-### 3. Parent Endpoints
+### 3. Teacher Score Management
+
+#### Get All Students' Score Summary
+```http
+GET /api/scores/teacher/{teacher_id}/students/
+Authorization: Bearer <teacher-token>
+```
+
+**Description:** Get all students under a teacher with their basic info and quiz score summary, plus an overview of all quiz attempts by all students.
+
+**Response Example:**
+```json
+{
+    "students": [
+        {
+            "id": 1,
+            "name": "Alice Smith",
+            "parent_email": "parent@email.com",
+            "class_name": "Grade 5A",
+            "total_quizzes_attempted": 5,
+            "average_score_percentage": 78.5,
+            "latest_quiz_date": "2025-09-15T10:30:00Z",
+            "completed_attempts": 4,
+            "incomplete_attempts": 1
+        },
+        {
+            "id": 2,
+            "name": "Bob Johnson",
+            "parent_email": "parent2@email.com",
+            "class_name": "Grade 5A",
+            "total_quizzes_attempted": 3,
+            "average_score_percentage": 85.0,
+            "latest_quiz_date": "2025-09-16T14:20:00Z",
+            "completed_attempts": 3,
+            "incomplete_attempts": 0
+        }
+    ],
+    "all_quiz_attempts": [
+        {
+            "id": 15,
+            "student_name": "Bob Johnson",
+            "student_class": "Grade 5A",
+            "quiz_title": "Math Quiz 3",
+            "score": 9,
+            "total_marks": 10,
+            "percentage": 90.0,
+            "attempted_at": "2025-09-16T14:20:00Z",
+            "completed_at": "2025-09-16T14:45:00Z",
+            "is_completed": true
+        },
+        {
+            "id": 14,
+            "student_name": "Alice Smith",
+            "student_class": "Grade 5A",
+            "quiz_title": "Math Quiz 2",
+            "score": 7,
+            "total_marks": 10,
+            "percentage": 70.0,
+            "attempted_at": "2025-09-15T10:30:00Z",
+            "completed_at": "2025-09-15T11:00:00Z",
+            "is_completed": true
+        }
+    ]
+}
+```
+
+#### Get Detailed Student Scores
+```http
+GET /api/scores/teacher/{teacher_id}/student/{student_id}/
+Authorization: Bearer <teacher-token>
+```
+
+**Description:** Get detailed quiz scores for a specific student under a specific teacher, showing individual quiz attempts with question statistics.
+
+**Response Example:**
+```json
+{
+    "student_id": 1,
+    "student_name": "Alice Smith",
+    "student_email": "parent@email.com",
+    "class_name": "Grade 5A",
+    "quiz_attempts": [
+        {
+            "id": 14,
+            "quiz_title": "Math Quiz 2",
+            "quiz_total_marks": 10,
+            "quiz_total_questions": 5,
+            "correct_answers": 4,
+            "total_questions": 5,
+            "quiz_marks": 7,
+            "total_marks": 10,
+            "percentage": 70.0,
+            "attempted_at": "2025-09-15T10:30:00Z",
+            "completed_at": "2025-09-15T11:00:00Z",
+            "is_completed": true
+        },
+        {
+            "id": 12,
+            "quiz_title": "Math Quiz 1",
+            "quiz_total_marks": 10,
+            "quiz_total_questions": 5,
+            "correct_answers": 5,
+            "total_questions": 5,
+            "quiz_marks": 10,
+            "total_marks": 10,
+            "percentage": 100.0,
+            "attempted_at": "2025-09-10T09:15:00Z",
+            "completed_at": "2025-09-10T09:40:00Z",
+            "is_completed": true
+        }
+    ]
+}
+```
+
+**Key Features:**
+- **Authentication Required:** Teachers can only access their own students' scores
+- **Student Summary:** Shows basic student info with quiz statistics
+- **Score Format:** Displays "correct_answers/total_questions" and "quiz_marks/total_marks" for easy frontend display
+- **Overview Section:** First endpoint includes all quiz attempts by all students for classroom activity overview
+- **Percentage Available:** Percentage is calculated and included, but can also be calculated in frontend
+- **Ordered Results:** Quiz attempts are ordered by most recent first
+
+### 4. Parent Endpoints
 
 #### Get Parent's Children
 ```http
@@ -148,7 +270,7 @@ Authorization: Bearer <parent-token>
 
 **Note:** Only returns active quizzes from teachers who teach the parent's children.
 
-### 4. Quiz Attempts and Submissions
+### 5. Quiz Attempts and Submissions
 
 #### Start a Quiz Attempt
 ```http
@@ -325,6 +447,27 @@ The quiz system includes a comprehensive Django admin interface with:
 - Answer review
 - Proper permissions (teachers see only their content)
 
+## Development Setup
+
+**Important:** This project uses the `uv` package manager. When running any Python/Django commands, use `uv` instead of `pip` or regular Python commands:
+
+```bash
+# Install dependencies
+uv sync
+
+# Run migrations
+uv run python manage.py migrate
+
+# Create superuser
+uv run python manage.py createsuperuser
+
+# Run development server
+uv run python manage.py runserver
+
+# Run tests
+uv run python manage.py test
+```
+
 ## Testing Steps
 
 1. **Create a teacher account** and login to get JWT token
@@ -337,5 +480,27 @@ The quiz system includes a comprehensive Django admin interface with:
 8. **Submit quiz answers** as parent
 9. **Get quiz results** as parent
 10. **Check results** as teacher for all attempts
+11. **Get student score summary** as teacher using `/api/scores/teacher/{teacher_id}/students/`
+12. **Get detailed student scores** as teacher using `/api/scores/teacher/{teacher_id}/student/{student_id}/`
+
+### New Score Endpoints Testing
+
+To test the new score management endpoints:
+
+```bash
+# Get all students' scores summary (replace {teacher_id} with actual teacher ID)
+curl -X GET "http://localhost:8000/api/scores/teacher/1/students/" \
+     -H "Authorization: Bearer <teacher-token>"
+
+# Get detailed scores for specific student (replace IDs with actual values)
+curl -X GET "http://localhost:8000/api/scores/teacher/1/student/1/" \
+     -H "Authorization: Bearer <teacher-token>"
+```
+
+**Expected Use Case:**
+- Teacher logs in and calls the first endpoint to see all students with summary statistics
+- Frontend displays student list with stats and overall classroom quiz activity
+- Teacher clicks on a student name, frontend calls second endpoint with student ID
+- Detailed view shows all quiz attempts for that student with question/answer statistics
 
 This comprehensive quiz system provides all the requested functionality with proper authentication, permissions, and business logic implementation.

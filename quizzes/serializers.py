@@ -175,3 +175,68 @@ class ParentQuizListSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'time_limit', 'deadline',
             'is_active', 'total_questions', 'total_marks', 'teacher_name'
         ]
+
+
+class StudentScoreSummarySerializer(serializers.Serializer):
+    """Serializer for student score summary"""
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    parent_email = serializers.EmailField()
+    class_name = serializers.CharField()
+    total_quizzes_attempted = serializers.IntegerField()
+    average_score_percentage = serializers.FloatField()
+    latest_quiz_date = serializers.DateTimeField(allow_null=True)
+    completed_attempts = serializers.IntegerField()
+    incomplete_attempts = serializers.IntegerField()
+
+
+class QuizAttemptDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed quiz attempt with question statistics"""
+    quiz_title = serializers.CharField(source='quiz.title', read_only=True)
+    quiz_total_marks = serializers.IntegerField(source='quiz.total_marks', read_only=True)
+    quiz_total_questions = serializers.IntegerField(source='quiz.total_questions', read_only=True)
+    correct_answers = serializers.SerializerMethodField()
+    total_questions = serializers.SerializerMethodField()
+    quiz_marks = serializers.IntegerField(source='score', read_only=True)
+    percentage = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = QuizAttempt
+        fields = [
+            'id', 'quiz_title', 'quiz_total_marks', 'quiz_total_questions',
+            'correct_answers', 'total_questions', 'quiz_marks', 'total_marks',
+            'percentage', 'attempted_at', 'completed_at', 'is_completed'
+        ]
+    
+    def get_correct_answers(self, obj):
+        """Get number of correct answers for this attempt"""
+        return obj.answers.filter(is_correct=True).count()
+    
+    def get_total_questions(self, obj):
+        """Get total number of questions answered"""
+        return obj.answers.count()
+
+
+class StudentDetailedScoresSerializer(serializers.Serializer):
+    """Serializer for detailed student scores"""
+    student_id = serializers.IntegerField()
+    student_name = serializers.CharField()
+    student_email = serializers.EmailField()
+    class_name = serializers.CharField()
+    quiz_attempts = QuizAttemptDetailSerializer(many=True)
+
+
+class AllQuizzesAttemptedSerializer(serializers.ModelSerializer):
+    """Serializer for showing all quiz attempts by all students"""
+    student_name = serializers.CharField(source='student.name', read_only=True)
+    student_class = serializers.CharField(source='student.class_name', read_only=True)
+    quiz_title = serializers.CharField(source='quiz.title', read_only=True)
+    percentage = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = QuizAttempt
+        fields = [
+            'id', 'student_name', 'student_class', 'quiz_title',
+            'score', 'total_marks', 'percentage', 'attempted_at',
+            'completed_at', 'is_completed'
+        ]

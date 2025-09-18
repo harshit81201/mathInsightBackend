@@ -16,4 +16,8 @@ urlpatterns = [
     path('quizzes/<int:quiz_id>/attempt/', views.start_quiz_attempt, name='start-quiz-attempt'),
     path('quizzes/<int:quiz_id>/submit/', views.submit_quiz, name='submit-quiz'),
     path('quizzes/<int:quiz_id>/results/', views.get_quiz_results, name='quiz-results'),
+    
+    # Score endpoints for teachers
+    path('scores/teacher/<int:teacher_id>/students/', views.teacher_students_scores, name='teacher-students-scores'),
+    path('scores/teacher/<int:teacher_id>/student/<int:student_id>/', views.teacher_student_detailed_scores, name='teacher-student-detailed-scores'),
 ]
