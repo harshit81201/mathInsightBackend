@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data  # SQLite database persistence
+    environment:
+      - DEBUG=False
+      - DJANGO_SETTINGS_MODULE=mathInsight.settings
+    env_file:
+      - .env.prod
+    restart: unless-stopped

@@ -1,0 +1,48 @@
+# Production Dockerfile - Optimized and Secure
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=mathInsight.settings
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Create app user for security
+RUN addgroup --system app && adduser --system --group app
+
+# Set work directory
+WORKDIR /app
+
+# Copy uv files and install dependencies
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
+
+# Copy project files
+COPY . .
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/data /app/staticfiles && \
+    chown -R app:app /app
+
+# Switch to app user
+USER app
+
+# Collect static files
+RUN uv run python manage.py collectstatic --noinput
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/admin/ || exit 1
+
+# Run migrations and start server with gunicorn
+CMD ["sh", "-c", "uv run python manage.py migrate && uv run gunicorn mathInsight.wsgi:application --bind 0.0.0.0:8000 --workers 3"]

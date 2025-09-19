@@ -27,12 +27,16 @@ environ.Env.read_env(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2fb9ie0y8_hj-$^4oji#k6n-_^dz8gkvw^#1fjgtvd5#gvr&8m'
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-2fb9ie0y8_hj-$^4oji#k6n-_^dz8gkvw^#1fjgtvd5#gvr&8m')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = ["*"]
+# Railway and production hosts
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0', '*.railway.app'])
+
+# Railway PORT handling
+PORT = env.int('PORT', default=8000)
 
 
 # Application definition
@@ -66,8 +70,28 @@ MIDDLEWARE = [
 # Django REST Framework & JWT settings
 AUTH_USER_MODEL = 'users.User'
 
-# CORS settings
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS settings - Allow specific origins for security
+CORS_ALLOWED_ORIGINS = [
+    "https://math-insight.vercel.app",
+    "http://localhost:3000",  # For local frontend development
+    "http://127.0.0.1:3000",  # Alternative localhost
+]
+
+# Allow credentials to be included in CORS requests
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS headers that can be used during the actual request
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 ROOT_URLCONF = 'mathInsight.urls'
 

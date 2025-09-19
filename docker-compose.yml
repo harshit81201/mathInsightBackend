@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data  # Persist SQLite database
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-2fb9ie0y8_hj-$$^4oji#k6n-_^dz8gkvw^#1fjgtvd5#gvr&8m
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    env_file:
+      - .env
+    restart: unless-stopped
