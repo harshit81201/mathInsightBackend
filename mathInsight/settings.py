@@ -33,7 +33,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-2fb9ie0y8_hj-$^4oji#k6n-
 DEBUG = env.bool('DEBUG', default=True)
 
 # Railway and production hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0', '*.railway.app'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0','healthcheck.railway.app','*.railway.app'])
 
 # Railway PORT handling
 PORT = env.int('PORT', default=8000)
