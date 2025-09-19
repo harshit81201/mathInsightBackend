@@ -34,7 +34,7 @@ RUN mkdir -p /app/data /app/staticfiles && \
 # Switch to app user
 USER app
 
-# Collect static files
+# Collect static files (Django admin interface)
 RUN uv run python manage.py collectstatic --noinput
 
 # Expose port

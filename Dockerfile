@@ -29,7 +29,7 @@ COPY . .
 # Create directory for SQLite database
 RUN mkdir -p /app/data
 
-# Collect static files
+# Collect static files (Django admin interface)
 RUN uv run python manage.py collectstatic --noinput
 
 # Railway uses PORT environment variable

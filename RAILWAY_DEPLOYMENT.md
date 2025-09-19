@@ -9,6 +9,7 @@ This guide explains how to deploy the Math Insight Backend to Railway.
 1. **Ensure your code is pushed to GitHub**
 2. **Your repository should have these files:**
    - `Dockerfile` (Railway-optimized)
+   - `railway.toml` (Railway configuration)
    - `pyproject.toml` with dependencies
    - `uv.lock` file
 
