@@ -13,4 +13,9 @@ urlpatterns = [
     path('teachers/<int:pk>/students/', views.TeacherStudentsView.as_view(), name='teacher-students'),
     path('parent/me/', views.ParentProfileView.as_view(), name='parent-me'),
     path('parent/children/', views.ParentChildrenView.as_view(), name='parent-children'),
+
+    # Parent Performance Endpoints
+    path('parent/performance/', views.ParentAllChildrenPerformanceView.as_view(), name='parent-all-performance'),
+    path('parent/performance/child/<int:child_id>/', views.ParentChildPerformanceDetailView.as_view(), name='parent-child-performance'),
+    path('parent/performance/child/<int:child_id>/quiz/<int:attempt_id>/', views.ParentChildQuizAttemptDetailView.as_view(), name='parent-quiz-attempt-detail'),
 ]
