@@ -75,6 +75,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://math-insight.vercel.app",
     "http://localhost:3000",  # For local frontend development
     "http://127.0.0.1:3000",  # Alternative localhost
+    "http://localhost:5173",  # Vite default port
+    "http://127.0.0.1:5173",  # Alternative Vite port
+
 ]
 
 # Allow credentials to be included in CORS requests
