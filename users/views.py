@@ -125,13 +125,13 @@ class ParentAllChildrenPerformanceView(APIView):
 		total_attempts = 0
 		total_score = 0
 		total_possible = 0
-		
+
 		for child in children:
 			attempts = QuizAttempt.objects.filter(student=child).select_related('quiz')
-			
+
 			if attempts.exists():
 				completed_attempts = attempts.filter(is_completed=True)
-				
+
 				# Calculate basic statistics
 				completed_count = completed_attempts.count()
 				if completed_count > 0:
@@ -139,7 +139,7 @@ class ParentAllChildrenPerformanceView(APIView):
 					total_score_child = sum(attempt.score for attempt in completed_attempts)
 					total_possible_child = sum(attempt.total_marks for attempt in completed_attempts)
 					avg_percentage = (total_score_child / total_possible_child * 100) if total_possible_child > 0 else 0
-					
+
 					# Get min/max scores for percentage calculation
 					max_attempt = completed_attempts.order_by('-score').first()
 					min_attempt = completed_attempts.order_by('score').first()
@@ -151,14 +151,14 @@ class ParentAllChildrenPerformanceView(APIView):
 					avg_percentage = 0
 					max_percentage = 0
 					min_percentage = 0
-				
+
 				# Calculate trend (compare last 3 vs previous 3 attempts)
 				recent_attempts = list(completed_attempts.order_by('-attempted_at')[:6])
 				trend = self._calculate_trend(recent_attempts)
-				
+
 				# Performance level
 				performance_level = self._get_performance_level(avg_percentage)
-				
+
 				children_performance.append({
 					"student_id": child.id,
 					"student_name": child.name,
@@ -176,7 +176,7 @@ class ParentAllChildrenPerformanceView(APIView):
 					"last_quiz_date": attempts.order_by('-attempted_at').first().attempted_at if attempts.exists() else None,
 					"performance_level": performance_level
 				})
-				
+
 				total_attempts += completed_count
 				total_score += total_score_child
 				total_possible += total_possible_child		# Overall statistics
@@ -301,7 +301,7 @@ class ParentChildPerformanceDetailView(APIView):
 			# Calculate averages and statistics
 			percentages = [attempt.percentage for attempt in completed_attempts]
 			avg_percentage = sum(percentages) / len(percentages)
-			
+
 			# Calculate totals without aggregation conflicts
 			total_marks_earned = sum(attempt.score for attempt in completed_attempts)
 			total_possible_marks = sum(attempt.total_marks for attempt in completed_attempts)
@@ -331,31 +331,31 @@ class ParentChildPerformanceDetailView(APIView):
 			"last_quiz_date": attempts.first().attempted_at if attempts.exists() else None,
 			"performance_level": self._get_performance_level(avg_percentage)
 		}
-	
+
 	def _calculate_trend(self, attempts):
 		"""Calculate performance trend based on recent attempts"""
 		if len(attempts) < 3:
 			return "insufficient_data"
-		
+
 		# Split into recent vs older attempts
 		recent = attempts[:3]
 		older = attempts[3:6] if len(attempts) >= 6 else attempts[3:]
-		
+
 		if not older:
 			return "insufficient_data"
-		
+
 		recent_avg = sum(a.percentage for a in recent) / len(recent)
 		older_avg = sum(a.percentage for a in older) / len(older)
-		
+
 		diff = recent_avg - older_avg
-		
+
 		if diff > 5:
 			return "improving"
 		elif diff < -5:
 			return "declining"
 		else:
 			return "stable"
-	
+
 	def _get_performance_level(self, percentage):
 		"""Get performance level based on percentage"""
 		if percentage >= 90:
